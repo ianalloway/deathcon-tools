@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh}
+.header{background:#161b22;padding:20px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+.header h1{color:#58a6ff;font-size:24px}
+.header .time{color:#8b949e}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;padding:20px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px}
+.card h2{color:#58a6ff;font-size:16px;margin-bottom:12px}
+.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #21262d}
+.stat .label{color:#8b949e}
+.stat .value{color:#58a6ff;font-weight:600}
+.value.green{color:#3fb950}
+.value.yellow{color:#d29922}
+.list{max-height:200px;overflow-y:auto}
+.list-item{padding:8px;margin:4px 0;background:#21262d;border-radius:4px;font-size:13px}
+.priority-H{border-left:3px solid #f85149}
+.priority-M{border-left:3px solid #d29922}
+.priority-L{border-left:3px solid #3fb950}
+.refresh{background:#238636;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer}
+.refresh:hover{background:#2ea043}
+.footer{text-align:center;padding:20px;color:#8b949e;font-size:12px}
+</style></head>
+<body>
+<div class="header">
+<h1>⚰️ Mission Control</h1>
+<span class="time" id="time"></span>
+</div>
+<div class="grid">
+<div class="card"><h2>📊 Overview</h2>
+<div class="stat"><span class="label">Repos</span><span class="value" id="repos">24</span></div>
+<div class="stat"><span class="label">Stars</span><span class="value" id="stars">10</span></div>
+<div class="stat"><span class="label">Jobs Pending</span><span class="value" id="pending">0</span></div>
+<div class="stat"><span class="label">Jobs Approved</span><span class="value green" id="approved">3</span></div>
+</div>
+<div class="card"><h2>📋 Tasks</h2><div class="list"><div class="list-item priority-H">Push taskmaster to GitHub</div><div class="list-item priority-H">Create PRs on ai-advantage</div><div class="list-item priority-M">Set up morning briefing script</div></div></div>
+<div class="card"><h2>💼 Projects</h2><div class="list"><div class="list-item">🔴 sports-betting-ml</div><div class="list-item">🔴 ai-advantage</div><div class="list-item">🔴 Money-maker-bot</div><div class="list-item">🟢 job-match-scanner</div><div class="list-item">🟢 cold-outreach</div><div class="list-item">🟢 taskmaster</div><div class="list-item">🟢 deathcon-dashboard</div><div class="list-item">🟢 blog-idea-engine</div></div></div>
+<div class="card"><h2>🧠 Skills</h2><div class="list"><div class="list-item">Python (expert)</div><div class="list-item">FastAPI (advanced)</div><div class="list-item">React (intermediate)</div><div class="list-item">XGBoost (advanced)</div><div class="list-item">YOLOv8 (intermediate)</div></div></div>
+<div class="card"><h2>📝 Notes</h2><div class="list"></div></div>
+<div class="card"><h2>🔧 System</h2>
+<div class="stat"><span class="label">Gateway</span><span class="value green" id="gateway">DOWN</span></div>
+<div class="stat"><span class="label">Heartbeat</span><span class="value green" id="heartbeat">DOWN</span></div>
+<div class="stat"><span class="label">Disk</span><span class="value" id="disk">on</span></div>
+</div>
+</div>
+<div class="footer>Last updated: <span id="updated"></span></div>
+<script>
+function update(){document.getElementById('time').textContent=new Date().toLocaleString();document.getElementById('updated').textContent=new Date().toLocaleTimeString()}
+update();setInterval(update,1000);
+</script></body></html>
