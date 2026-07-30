@@ -52,7 +52,7 @@ def main():
     path = Path(path).expanduser()
     
     # Run with remaining args
-    result = subprocess.run(["python3", path] + sys.argv[2:], capture_output=False)
+    subprocess.run(["python3", path] + sys.argv[2:], capture_output=False)
 
 if __name__ == "__main__":
     main()

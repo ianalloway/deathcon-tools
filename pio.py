@@ -5,7 +5,6 @@ Daily morning briefing - pulls from all your data sources
 """
 import json
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 

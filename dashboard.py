@@ -5,9 +5,7 @@ MISSION CONTROL - Your Personal Command Center
 import json
 import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
-from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_USER = "ianalloway"

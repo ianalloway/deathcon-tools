@@ -4,7 +4,6 @@ System Health Checker - Simplified
 """
 import subprocess
 import os
-from pathlib import Path
 
 def check(name, cmd):
     result = subprocess.run(cmd, shell=True, capture_output=True)

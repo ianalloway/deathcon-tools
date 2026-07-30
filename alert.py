@@ -5,7 +5,7 @@ Alert System - Custom alerts and notifications
 import json
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 
 ALERTS_FILE = Path.home() / ".alerts.json"
 

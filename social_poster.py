@@ -2,9 +2,6 @@
 """
 Social Poster - Auto-generate social posts from content
 """
-import sys
-import urllib.request
-import urllib.parse
 
 # Sample blog posts (would integrate with Substack API)
 POSTS = [
@@ -38,7 +35,7 @@ def generate_tweet(post, style="thread"):
         tweets = [
             f"🧵 I just published: {title}",
             f"Key insight: {summary}",
-            f"Why it matters: Building AI tools is easy. Making them work in production is hard.",
+            "Why it matters: Building AI tools is easy. Making them work in production is hard.",
             f"Link in comments 👇\n{url}"
         ]
         return "\n\n".join(tweets)

@@ -4,7 +4,7 @@ Daily Standup Generator - Creates standup from activity
 """
 import subprocess
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 PROJECTS = Path.home() / "projects"
@@ -25,7 +25,7 @@ def get_yesterday_commits():
             )
             if result.stdout.strip():
                 commits.append((proj.name, result.stdout.strip().split("\n")))
-        except:
+        except Exception:
             pass
     
     return commits
