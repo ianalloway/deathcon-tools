@@ -4,8 +4,10 @@ MISSION CONTROL - Your Personal Command Center
 """
 import json
 import os
-import subprocess
+from html import escape
 from pathlib import Path
+
+from host_status import disk_used, service_status
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_USER = "ianalloway"
@@ -65,7 +67,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="stat"><span class="label">Disk</span><span class="value" id="disk">-</span></div>
 </div>
 </div>
-<div class="footer>Last updated: <span id="updated"></span></div>
+<div class="footer">Last updated: <span id="updated"></span></div>
 <script>
 function update(){document.getElementById('time').textContent=new Date().toLocaleString();document.getElementById('updated').textContent=new Date().toLocaleTimeString()}
 update();setInterval(update,1000);
@@ -118,19 +120,11 @@ def get_notes():
     return NOTES.read_text().strip().split("\n")[:5]
 
 def get_system():
-    # Gateway
-    r = subprocess.run(["pgrep", "-f", "openclaw.*gateway"], capture_output=True)
-    gw = "UP" if r.returncode == 0 else "DOWN"
-    
-    # Heartbeat
-    r = subprocess.run(["pgrep", "-f", "heartbeat"], capture_output=True)
-    hb = "UP" if r.returncode == 0 else "DOWN"
-    
-    # Disk
-    r = subprocess.run(["df", "-h", "/"], capture_output=True, text=True)
-    disk = r.stdout.split()[9] if len(r.stdout.split()) > 9 else "?"
-    
-    return gw, hb, disk
+    status = service_status()
+    return ("UP" if status["gateway"] else "DOWN",
+            "UP" if status["heartbeat"] else "DOWN",
+            disk_used())
+
 
 def generate():
     repos, stars = get_github()
@@ -154,8 +148,8 @@ def generate():
     # Tasks
     task_html = ""
     for t in tasks:
-        p = t.get("priority", "medium")[0].upper()
-        task_html += f'<div class="list-item priority-{p}">{t.get("description", "")[:45]}</div>'
+        p = {"high": "H", "medium": "M", "low": "L"}.get(str(t.get("priority", "")).lower(), "M")
+        task_html += f'<div class="list-item priority-{p}">{escape(str(t.get("description", ""))[:45])}</div>'
     html = html.replace('<div class="list" id="tasks"></div>', f'<div class="list">{task_html}</div>')
     
     # Projects
@@ -168,13 +162,13 @@ def generate():
     # Skills
     skill_html = ""
     for s in skills:
-        skill_html += f'<div class="list-item">{s.get("name", "")} ({s.get("level", "")})</div>'
+        skill_html += f'<div class="list-item">{escape(str(s.get("name", "")))} ({escape(str(s.get("level", "")))})</div>'
     html = html.replace('<div class="list" id="skills"></div>', f'<div class="list">{skill_html}</div>')
     
     # Notes
     note_html = ""
     for n in notes:
-        note_html += f'<div class="list-item">{n}</div>'
+        note_html += f'<div class="list-item">{escape(str(n))}</div>'
     html = html.replace('<div class="list" id="notes"></div>', f'<div class="list">{note_html}</div>')
     
     return html
@@ -183,7 +177,8 @@ import urllib.request
 
 def main():
     output = WORKSPACE / "dashboard.html"
-    output.write_text(generate())
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(generate(), encoding="utf-8")
     print(f"Dashboard: {output}")
     return output
 
