@@ -37,3 +37,5 @@ python3 api_server.py
 Run `python3 api_server.py` then visit:
 - Dashboard: http://localhost:8080/dashboard.html
 - API: http://localhost:8080/api
+
+The server listens on IPv4 loopback. Run `python3 dashboard.py` to generate the HTML under `~/.openclaw/workspace`. The dashboard and JSON API are the only resources the server serves. The API reads local tasks and notes.

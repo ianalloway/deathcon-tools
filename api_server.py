@@ -4,11 +4,13 @@ API Server - Serves dashboard + provides JSON endpoints
 """
 import json
 import os
-import subprocess
 import urllib.request
 from datetime import datetime
 from pathlib import Path
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlsplit
+
+from host_status import service_status
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_USER = "ianalloway"
@@ -66,40 +68,62 @@ def get_notes():
         return []
     return NOTES.read_text().strip().split("\n")
 
-def get_system():
-    r = subprocess.run(["pgrep", "-f", "openclaw.*gateway"], capture_output=True)
-    gw = r.returncode == 0
-    r = subprocess.run(["pgrep", "-f", "heartbeat"], capture_output=True)
-    hb = r.returncode == 0
-    return {"gateway": gw, "heartbeat": hb}
+def dashboard_data():
+    repos, stars = get_github()
+    pending, approved = get_jobs()
+    return {
+        "github": {"repos": repos, "stars": stars},
+        "jobs": {"pending": pending, "approved": approved},
+        "tasks": get_tasks(),
+        "projects": get_projects(),
+        "skills": get_skills()[:5],
+        "notes": get_notes()[:5],
+        "system": service_status(),
+        "timestamp": datetime.now().isoformat(),
+    }
 
-class Handler(SimpleHTTPRequestHandler):
+
+class Handler(BaseHTTPRequestHandler):
+    def do_HEAD(self):
+        self.serve_dashboard(head_only=True)
+
     def do_GET(self):
-        if self.path == "/api":
-            data = {
-                "github": {"repos": get_github()[0], "stars": get_github()[1]},
-                "jobs": {"pending": get_jobs()[0], "approved": get_jobs()[1]},
-                "tasks": get_tasks(),
-                "projects": get_projects(),
-                "skills": get_skills()[:5],
-                "notes": get_notes()[:5],
-                "system": get_system(),
-                "timestamp": datetime.now().isoformat()
-            }
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps(data, indent=2).encode())
-        elif self.path == "/" or self.path == "/dashboard":
-            self.path = "/dashboard.html"
-        return SimpleHTTPRequestHandler.do_GET(self)
-    
+        self.serve_dashboard(head_only=False)
+
+    def serve_dashboard(self, head_only):
+        hosts = self.headers.get_all("Host", [])
+        port = self.server.server_port
+        allowed_hosts = {"localhost", "127.0.0.1", f"localhost:{port}", f"127.0.0.1:{port}"}
+        if len(hosts) != 1 or hosts[0].lower() not in allowed_hosts:
+            self.send_error(403)
+            return
+        path = urlsplit(self.path).path
+        if path == "/api":
+            content = json.dumps(dashboard_data(), indent=2).encode()
+            content_type = "application/json"
+        elif path in {"/", "/dashboard", "/dashboard.html"}:
+            try:
+                content = (WORKSPACE / "dashboard.html").read_bytes()
+            except FileNotFoundError:
+                self.send_error(404, "Generate the dashboard with dashboard.py")
+                return
+            content_type = "text/html; charset=utf-8"
+        else:
+            self.send_error(404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(content)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(content)
+
     def log_message(self, format, *args):
         pass  # Suppress logging
 
 def main(port=8080):
-    os.chdir(WORKSPACE)
-    server = HTTPServer(("", port), Handler)
+    server = HTTPServer(("127.0.0.1", port), Handler)
     print(f"Mission Control API: http://localhost:{port}")
     print(f"Dashboard: http://localhost:{port}/dashboard.html")
     print(f"API: http://localhost:{port}/api")
